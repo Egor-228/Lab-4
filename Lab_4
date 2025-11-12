@@ -1,0 +1,86 @@
+items = [['r',3,25], ['p',2,15], 
+        ['a',2,15], ['m',2,20], 
+        ['i',1,5], ['k',1,15], 
+        ['x',3,20], ['t',1,25], 
+        ['f',1,15], ['d',1,10], 
+        ['s',2,20], ['c',2,20]]
+
+space = 9
+start_value = 10
+
+# Удаляем обязательный предмет из списка
+items.remove(['i',1,5])
+start_value += 5
+space -= 1
+
+best_score = -float('inf')
+best_combination = []
+valid_combinations = []
+
+def take(items, n_item, current_value, space_left, taken_items, all_items):
+    global best_score, best_combination
+    
+    # Если прошли весь список
+    if n_item >= len(items):
+        final_score = current_value
+        taken_symbols = {item[0] for item in taken_items}
+        
+        # Вычитаем очки
+        for item in all_items:
+            if item[0] not in taken_symbols:
+                final_score -= item[2]
+        
+        
+        if final_score > best_score:
+            best_score = final_score
+            best_combination = taken_items.copy()
+
+        if final_score > 0:
+            valid_combinations.append((taken_items.copy(), final_score))
+        
+        return final_score
+    
+    # Не берем предмет
+    score1 = take(items, n_item + 1, current_value, space_left, taken_items, all_items)
+    
+    # Берем предмет
+    score2 = -float('inf')
+    if items[n_item][1] <= space_left:
+        taken_items.append(items[n_item])
+        score2 = take(items, n_item + 1, 
+                     current_value + items[n_item][2], 
+                     space_left - items[n_item][1], 
+                     taken_items, all_items)
+        taken_items.pop()
+    return max(score1, score2)
+
+
+
+result = take(items, 0, start_value, space, [['i',1,5]], items)
+
+print(f"Лучший результат: {result}")
+
+
+cells = []
+for item in best_combination:
+    cells.extend([item[0]] * item[1])
+
+# Заполняем оставшиеся ячейки
+while len(cells) < 3 * 3:
+    cells.append(' ')
+for i in range(3):
+    row = []
+    for j in range(3):
+        index = i * 3 + j
+        row.append(f"[{cells[index]}]")
+    print(",".join(row))
+
+
+
+print(f"\nНайдено валидных комбинаций: {len(valid_combinations)}")
+
+for i in valid_combinations:
+    row = []
+    for j in i[0:-1][0]:
+        row.append(f"[{j[0]}]")
+    print(",".join(row))
